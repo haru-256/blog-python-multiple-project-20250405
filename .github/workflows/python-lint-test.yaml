@@ -42,6 +42,10 @@ jobs:
           dir_names_max_depth: 1 # ディレクトリ名の深さを指定
           files_ignore: |
             .github/**
+      - name: Debug changed files
+        run: |
+          echo "Changed files: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}"
+          echo "::debug::Changed files: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}"
       - name: Get Python projects
         uses: actions/github-script@v7
         id: changes
@@ -49,19 +53,22 @@ jobs:
           script: |
             const fs = require('node:fs');
             // If target_projects input is provided, use it
-            if (${{ github.event.inputs.target_projects }}) {
-              core.setOutput('target_projects', ${{ github.event.inputs.target_projects }});
+            dispatch_inputs = JSON.parse(${{ toJSON(steps.changed-files.outputs.all_changed_and_modified_files) }});
+            if (dispatch_inputs) {
+              // TODO: validate the input
+              core.setOutput('target_projects', dispatch_inputs);
             } else { // If no input is provided, get directories from changed files
-              const inputs = JSON.parse(${{ steps.changed-files.outputs.all_changed_and_modified_files }});
+              const inputs = JSON.parse(${{ toJSON(steps.changed-files.outputs.all_changed_and_modified_files) }});
               // Filter out directories that contain pyproject.toml and Makefile
               const paths = inputs.filter(path => {
-                if (fs.statSync(path).isDirectory()) {
-                  if (
-                    fs.existsSync(`${path}/pyproject.toml`)
-                    && fs.existsSync(`${path}/Makefile`)
-                  )
+                if (
+                  fs.statSync(path).isDirectory()
+                  && fs.existsSync(`${path}/pyproject.toml`)
+                  && fs.existsSync(`${path}/Makefile`)
+                ) {
                   return true;
                 }
+                return false;
               });
               core.setOutput('target_projects', JSON.stringify(paths));
             }
