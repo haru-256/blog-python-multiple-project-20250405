@@ -94,6 +94,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          cache-dependency-glob: "${{ matrix.project }}/uv.lock"
       - name: Install the project
         run: make install
       - name: Lint
