@@ -51,7 +51,7 @@ jobs:
             // If target_projects input is provided, use it
             dispatch_inputs = "${{ github.event.inputs.target_projects }}";
             if (dispatch_inputs !== "") {
-              // TODO: validate the input
+              dispatch_inputs = dispatch_inputs.split(',').map(path => path.trim());
               core.setOutput('projects', JSON.stringify(dispatch_inputs));
             } else { // If no input is provided, get directories from changed files
               const inputs = JSON.parse(${{ toJSON(steps.changed-files.outputs.all_changed_and_modified_files) }});
