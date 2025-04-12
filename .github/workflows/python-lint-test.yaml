@@ -94,6 +94,8 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          cache-dependency-glob: "${{ matrix.project }}/pyproject.toml"
+          cache-suffix: "${{ matrix.project }}"
       - name: Install the project
         run: make install
       - name: Lint
